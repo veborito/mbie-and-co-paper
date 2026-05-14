@@ -1,6 +1,6 @@
 import numpy as np
 import gymnasium as gym
-from mdps import MDP, RiverSwimMDP
+from mdps import MDP, RiverSwimMDP, SixArmsMDP
 from value_iteration import q_value_iteration_w_ci
 from tqdm import tqdm
 
@@ -91,10 +91,20 @@ if __name__ == "__main__":
     SEED = 42
     A = 0.3
     B = 0.0
-    env = RiverSwimMDP()
+    # env = RiverSwimMDP()
+    # alg = MBIE(env=env, max_reward=MAX_REWARD, discount_factor=GAMMA, A=A, B=B)
+    # alg2 = MBIE(env=env, max_reward=MAX_REWARD, discount_factor=GAMMA, A=A, B=B)
+    # alg.run(5000)
+    # alg2.run(5000)
+    # print(alg.cumulative_reward())
+    # print(alg2.cumulative_reward())
+    MAX_REWARD = 6_000
+    A = 0.3
+    B = 0.08
+    env = SixArmsMDP()
     alg = MBIE(env=env, max_reward=MAX_REWARD, discount_factor=GAMMA, A=A, B=B)
-    alg2 = MBIE(env=env, max_reward=MAX_REWARD, discount_factor=GAMMA, A=A, B=B)
+    # alg2 = MBIE(env=env, max_reward=MAX_REWARD, discount_factor=GAMMA, A=A, B=B)
     alg.run(5000)
-    alg2.run(5000)
+    # alg2.run(5000)
     print(alg.cumulative_reward())
-    print(alg2.cumulative_reward())
+    # print(alg2.cumulative_reward())
