@@ -21,16 +21,16 @@ class MDP:
     def generate_state(self, state: int, action: int) -> int:
         return np.random.choice(self.n_states, p=self.P[state, action])
 
-    def get_reward(self, state: int, action: int) -> float or int:
+    def get_reward(self, state: int, action: int) -> float:
         return self.R[state, action]
 
-    def get_rewards(self, state: int) -> list[float] or list[int]:
+    def get_rewards(self, state: int) -> list[int]:
         return self.R[state]
 
-    def step(self, action: int) -> tuple[int, float or int, bool, dict]:
+    def step(self, action: np.intp) -> tuple[int, float, bool, dict]:
         # respect gymnasium step for extensions
-        self.state = self.generate_state(self.state, action)
         reward = self.get_reward(self.state, action)
+        self.state = self.generate_state(self.state, action)
         done = False
         return self.state, reward, done, {}
 
@@ -62,7 +62,7 @@ class RiverSwimMDP(MDP):
                 [0, 0],
                 [0, 0],
                 [0, 0],
-                [0, 10000],
+                [0, 3000],
             ]
         )
 
