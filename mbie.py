@@ -1,14 +1,14 @@
 import numpy as np
 import gymnasium as gym
 from mdps import MDP, RiverSwimMDP
-from value_iteration import value_iteration
-
+from value_iteration import q_value_iteration_w_ci
+from tqdm import tqdm
 
 class MBIE:
     def __init__(
         self,
-        env: MDP or gym.Env,
-        max_reward: int or float,
+        env: MDP,
+        max_reward: float,
         discount_factor: float,
         A: float,
         B: float,
@@ -17,61 +17,84 @@ class MBIE:
         self.discount_factor = discount_factor  # discount factor
 
         self.max_reward = max_reward
-        self.max_value = 1 / (1 - self.discount_factor)
+        self.max_value = max_reward / (1 - self.discount_factor)
         self.A = A
         self.B = B
 
         self.n_states = env.n_states
         self.n_actions = env.n_actions
+        self.policy = np.zeros([self.n_states, self.n_actions])
         self.count_sas = np.zeros([self.n_states, self.n_actions, self.n_states])
         self.count_sa = np.zeros([self.n_states, self.n_actions])
         self.Q_tild = np.full([self.n_states, self.n_actions], self.max_value)
         self.R_hat = np.zeros([self.n_states, self.n_actions])
         self.R_tild = np.zeros([self.n_states, self.n_actions])
         self.T_hat = np.zeros([self.n_states, self.n_actions, self.n_states])
-        self.T_tild = np.zeros([self.n_states, self.n_actions, self.n_states])
+        self.T_ci = np.zeros([self.n_states, self.n_actions])
         self.R_sum = np.zeros([self.n_states, self.n_actions])
 
     def _update_reward(self, s, a):
         reward_ci = self.A * (self.max_reward / np.sqrt(self.count_sa[s, a]))
         reward = self.R_sum[s, a] / self.count_sa[s, a]
-        self.R_hat = reward
+        self.R_hat[s, a] = reward
         self.R_tild[s, a] = reward + reward_ci
 
     def _update_transition(self, s, a, next_s):
-        trans_ci = self.B * (1 / np.sqrt(self.count_sa[s, a]))
         prob = self.count_sas[s, a, next_s] / self.count_sa[s, a]
         self.T_hat[s, a, next_s] = prob
-        self.T_tild[s, a, next_s] = prob + trans_ci
+    
+    def _update_transition_ci(self, s, a):
+        trans_ci = self.B * (1 / np.sqrt(self.count_sa[s, a]))
+        self.T_ci[s, a] = trans_ci
 
-    def _normalize_transition(self, s, a):
-        self.T_tild[s, a] /= self.T_tild[s, a].sum()
+    def cumulative_reward(self):
+        return self.R_sum.sum()
 
-    def build_estimates(self):
-        for s in range(self.n_states):
-            for a in range(self.n_actions):
-                if self.count_sa[s, a] == 0:
-                    continue
-                else:
-                    self._update_reward(s, a)
-                    for next_s in range(self.n_states):
-                        self._update_transition(s, a, next_s)
-                    # using normalized transitions may be incorrect
-                    self._normalize_transition(s, a)
-
+    def _build_estimates(self, state, action):
+        if self.count_sa[state, action] == 0:
+          pass
+        else:
+            self._update_reward(state, action)
+            self._update_transition_ci(state, action)
+            for next_s in range(self.n_states):
+                self._update_transition(state, action, next_s)
+                
     def run(self, experiments):
-        action = np.random.choice(self.n_actions)
         state = self.env.reset()
-        for _ in range(experiments):
+        action = np.argmax(self.Q_tild[state])
+        for _ in tqdm(range(experiments)):
             next_state, reward, _, _ = self.env.step(action)
             self.count_sa[state, action] += 1
             self.count_sas[state, action, next_state] += 1
             self.R_sum[state, action] += reward
-            self.build_estimates()
+            self._build_estimates(state, action)
+            _, self.Q_tild, _ = q_value_iteration_w_ci(
+                self.env,
+                self.Q_tild,
+                self.R_tild,
+                self.T_hat,
+                self.T_ci,
+                self.max_reward,
+                self.count_sa,
+                gamma=self.discount_factor,
+            )
+            action = np.argmax(self.Q_tild[next_state])
+            state = next_state
 
+def run(alg):
+  alg.run(5000)
+  print(alg.cumulative_reward())
 
 if __name__ == "__main__":
-    mdp = RiverSwimMDP()
-    V, policy = value_iteration(mdp, 0.95)
-    print(V.sum())
-    print(policy)
+    MAX_REWARD = 10_000
+    GAMMA = 0.95
+    SEED = 42
+    A = 0.3
+    B = 0.0
+    env = RiverSwimMDP()
+    alg = MBIE(env=env, max_reward=MAX_REWARD, discount_factor=GAMMA, A=A, B=B)
+    alg2 = MBIE(env=env, max_reward=MAX_REWARD, discount_factor=GAMMA, A=A, B=B)
+    alg.run(5000)
+    alg2.run(5000)
+    print(alg.cumulative_reward())
+    print(alg2.cumulative_reward())
