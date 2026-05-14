@@ -3,6 +3,7 @@ import gymnasium as gym
 from mdps import MDP, RiverSwimMDP, SixArmsMDP
 from value_iteration import q_value_iteration_w_ci
 from tqdm import tqdm
+import matplotlib.pyplot as plt
 
 class MBIE:
     def __init__(
@@ -81,9 +82,13 @@ class MBIE:
             action = np.argmax(self.Q_tild[next_state])
             state = next_state
 
-def run(alg):
-  alg.run(5000)
-  print(alg.cumulative_reward())
+def runs(env, MAX_REWARD, GAMMA, A , B, len):
+  results = []
+  for _ in tqdm(range(len)):
+    alg =  MBIE(env=env, max_reward=MAX_REWARD, discount_factor=GAMMA, A=A, B=B)
+    alg.run(5000)
+    results.append(alg.cumulative_reward())
+  return results
 
 if __name__ == "__main__":
     # MAX_REWARD = 10_000
@@ -103,9 +108,10 @@ if __name__ == "__main__":
     B = 0.08
     GAMMA = 0.95
     env = SixArmsMDP()
-    alg = MBIE(env=env, max_reward=MAX_REWARD, discount_factor=GAMMA, A=A, B=B)
-    # alg2 = MBIE(env=env, max_reward=MAX_REWARD, discount_factor=GAMMA, A=A, B=B)
-    alg.run(5000)
-    # alg2.run(5000)
-    print(alg.cumulative_reward())
-    #print(alg2.cumulative_reward())
+    array = np.array(runs(env, MAX_REWARD, GAMMA, A, B, 10))
+    
+    print(array.mean())
+    print(array.std())
+    
+    plt.bar("MBIE", array.mean(), yerr=array.std)
+    set.title("SixArms")

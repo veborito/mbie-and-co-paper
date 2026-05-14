@@ -26,7 +26,7 @@ def q_one_step_lookahead_w_ci(mdp,Q_tild, R_tild, T_hat, T_ci, R_max, count_sa, 
           if next_state == best_next_state:
               continue
           # Take as much as possible without dropping probability below 0
-          remove_amount = min(to_remove, T_tild[best_next_state])
+          remove_amount = min(to_remove, T_tild[next_state])
           T_tild[next_state] -= remove_amount
           to_remove -= remove_amount
         reward = R_tild[state, action]
