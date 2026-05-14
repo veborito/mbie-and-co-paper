@@ -86,25 +86,26 @@ def run(alg):
   print(alg.cumulative_reward())
 
 if __name__ == "__main__":
-    MAX_REWARD = 10_000
-    GAMMA = 0.95
-    SEED = 42
-    A = 0.3
-    B = 0.0
+    # MAX_REWARD = 10_000
+    # GAMMA = 0.95
+    # SEED = 42
+    # A = 0.3
+    # B = 0.08
     # env = RiverSwimMDP()
     # alg = MBIE(env=env, max_reward=MAX_REWARD, discount_factor=GAMMA, A=A, B=B)
-    # alg2 = MBIE(env=env, max_reward=MAX_REWARD, discount_factor=GAMMA, A=A, B=B)
+    # #alg2 = MBIE(env=env, max_reward=MAX_REWARD, discount_factor=GAMMA, A=A, B=B)
     # alg.run(5000)
-    # alg2.run(5000)
+    # #alg2.run(5000)
     # print(alg.cumulative_reward())
-    # print(alg2.cumulative_reward())
+    # #print(alg2.cumulative_reward())
     MAX_REWARD = 6_000
     A = 0.3
     B = 0.08
+    GAMMA = 0.95
     env = SixArmsMDP()
     alg = MBIE(env=env, max_reward=MAX_REWARD, discount_factor=GAMMA, A=A, B=B)
     # alg2 = MBIE(env=env, max_reward=MAX_REWARD, discount_factor=GAMMA, A=A, B=B)
     alg.run(5000)
     # alg2.run(5000)
     print(alg.cumulative_reward())
-    # print(alg2.cumulative_reward())
+    #print(alg2.cumulative_reward())
