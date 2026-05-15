@@ -24,7 +24,6 @@ class MBIE:
 
         self.n_states = env.n_states
         self.n_actions = env.n_actions
-        self.policy = np.zeros([self.n_states, self.n_actions])
         self.count_sas = np.zeros([self.n_states, self.n_actions, self.n_states])
         self.count_sa = np.zeros([self.n_states, self.n_actions])
         self.Q_tild = np.full([self.n_states, self.n_actions], self.max_value)
@@ -35,7 +34,7 @@ class MBIE:
         self.R_sum = np.zeros([self.n_states, self.n_actions])
 
     def _update_reward(self, s, a):
-        reward_ci = self.A * (self.max_reward / np.sqrt(self.count_sa[s, a]))
+        reward_ci = self.A * self.max_reward / np.sqrt(self.count_sa[s, a])
         reward = self.R_sum[s, a] / self.count_sa[s, a]
         self.R_hat[s, a] = reward
         self.R_tild[s, a] = reward + reward_ci
@@ -69,7 +68,7 @@ class MBIE:
             self.count_sas[state, action, next_state] += 1
             self.R_sum[state, action] += reward
             self._build_estimates(state, action)
-            _, self.Q_tild, _ = q_value_iteration_w_ci(
+            _, self.Q_tild = q_value_iteration_w_ci(
                 self.env,
                 self.Q_tild,
                 self.R_tild,
@@ -91,27 +90,27 @@ def runs(env, MAX_REWARD, GAMMA, A , B, len):
   return results
 
 if __name__ == "__main__":
-    # MAX_REWARD = 10_000
-    # GAMMA = 0.95
-    # SEED = 42
+    MAX_REWARD = 10_000
+    GAMMA = 0.95
+    SEED = 42
+    A = 0.3
+    B = 0
+    env = RiverSwimMDP()
+    alg = MBIE(env=env, max_reward=MAX_REWARD, discount_factor=GAMMA, A=A, B=B)
+    #alg2 = MBIE(env=env, max_reward=MAX_REWARD, discount_factor=GAMMA, A=A, B=B)
+    alg.run(5000)
+    #alg2.run(5000)
+    print(alg.cumulative_reward())
+    #print(alg2.cumulative_reward())
+    # MAX_REWARD = 6_000
     # A = 0.3
     # B = 0.08
-    # env = RiverSwimMDP()
-    # alg = MBIE(env=env, max_reward=MAX_REWARD, discount_factor=GAMMA, A=A, B=B)
-    # #alg2 = MBIE(env=env, max_reward=MAX_REWARD, discount_factor=GAMMA, A=A, B=B)
-    # alg.run(5000)
-    # #alg2.run(5000)
-    # print(alg.cumulative_reward())
-    # #print(alg2.cumulative_reward())
-    MAX_REWARD = 6_000
-    A = 0.3
-    B = 0.08
-    GAMMA = 0.95
-    env = SixArmsMDP()
-    array = np.array(runs(env, MAX_REWARD, GAMMA, A, B, 10))
+    # GAMMA = 0.95
+    # env = SixArmsMDP()
+    # array = np.array(runs(env, MAX_REWARD, GAMMA, A, B, 10))
     
-    print(array.mean())
-    print(array.std())
+    # print(array.mean())
+    # print(array.std())
     
-    plt.bar("MBIE", array.mean(), yerr=array.std)
-    set.title("SixArms")
+    # plt.bar("MBIE", array.mean(), yerr=array.std)
+    # set.title("SixArms")

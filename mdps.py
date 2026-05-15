@@ -62,7 +62,7 @@ class RiverSwimMDP(MDP):
                 [0, 0],
                 [0, 0],
                 [0, 0],
-                [0, 3000],
+                [0, 3_000],
             ]
         )
 
@@ -71,7 +71,6 @@ class RiverSwimMDP(MDP):
         return self.state
 
 
-# AI generated
 class SixArmsMDP(MDP):
     def __init__(self):
         super().__init__(7, 6)
@@ -202,29 +201,15 @@ class SixArmsMDP(MDP):
           ]
         )
 
-        #
-        # expected rewards
-        #
-        # expected reward placed directly on
-        # center-state actions
-        #
-        # E[r] = p * reward
-        #
-                
-        room_reward = [
-          0,
-          50,
-          133,
-          300,
-          800,
-          1660,
-          6000,
-        ]
-        
-        for s, states in enumerate(self.P):
-          for a, actions in enumerate(states):
-            for n_s, prob in enumerate(actions):
-              self.R[s, a] += prob * room_reward[n_s]
+        self.R = np.array([
+          [0, 0, 0, 0, 0, 0],
+          [50, 50, 50, 50, 0, 50],
+          [0, 133, 0, 0, 0, 0],
+          [0, 0, 300, 0, 0, 0],
+          [0, 0, 0, 800, 0, 0],
+          [0, 0, 0, 0, 1660, 0],
+          [0, 0, 0, 0, 0, 6000],
+        ])
 
     def reset(self):
         self.state = 0
@@ -232,3 +217,4 @@ class SixArmsMDP(MDP):
 
 if __name__== "__main__":
   mdp = SixArmsMDP()
+  print(mdp.R)

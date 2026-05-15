@@ -1,6 +1,26 @@
 import numpy as np
 from mdps import MDP, RiverSwimMDP
 
+# --------------------------- Q VALUE ITERATION FOR MBIE-EB (NON OPTIMIZED) ------------------------------------
+
+def q_value_iteration(
+    mdp, Q_tild, R_hat, T_hat, gamma: float = 0.95, theta: float = 0.01):
+    V = np.zeros(mdp.n_states)
+    delta = 1
+    while theta < delta:
+        delta = 0
+        for state in range(mdp.n_states):
+          for action in range(mdp.n_actions):
+            Q_tild[state, action] = R_hat[state, action] + gamma * np.dot(T_hat[state, action], V)
+          update = np.max(Q_tild[state])
+          
+          delta = max(delta, np.abs(update - V[state]))
+          V[state] = update
+          
+    return V, Q_tild
+
+
+
 # --------------------------- Q VALUE ITERATION FOR MBIE (NON OPTIMIZED) ------------------------------------
 
 def q_one_step_lookahead_w_ci(mdp,Q_tild, R_tild, T_hat, T_ci, R_max, count_sa, state, gamma):
@@ -51,46 +71,7 @@ def q_value_iteration_w_ci(
             delta = max(delta, np.abs(update - V[state]))
             V[state] = update
 
-    policy = np.zeros([mdp.n_states, mdp.n_actions])
-    for state in range(mdp.n_states):
-        best_action = np.argmax(Q_tild[state])
-        policy[state, best_action] = 1
-
-    return V, Q_tild, policy
-
-# --------------------------- BASIC Q VALUE ITERATION (NON OPTIMIZED) ------------------------------------
-
-def q_one_step_lookahead(mdp, Q, state, gamma):
-    for action in range(mdp.n_actions):
-        q_sum = 0
-        for next_state in range(mdp.n_states):
-            prob = mdp.get_transition_probability(state, action, next_state)
-            reward = mdp.get_reward(state, action)
-            q_sum += prob * (reward + gamma * np.max(Q[next_state]))
-        Q[state, action] = q_sum
-    return Q
-
-
-def q_value_iteration(mdp: MDP, gamma: float = 0.95, theta: float = 0.01):
-    V = np.zeros([mdp.n_states])
-    Q = np.zeros([mdp.n_states, mdp.n_actions])
-    delta = 1
-    while theta < delta:
-        delta = 0
-        for state in range(mdp.n_states):
-            Q = q_one_step_lookahead(mdp, Q, state, gamma)
-            update = np.max(Q[state])
-
-            delta = max(delta, np.abs(update - V[state]))
-            V[state] = update
-
-    policy = np.zeros([mdp.n_states, mdp.n_actions])
-    for state in range(mdp.n_states):
-        _Q = one_step_lookahead(mdp, V, state, gamma)
-        best_action = np.argmax(_Q[state])
-        policy[state, best_action] = 1
-
-    return V, Q, policy
+    return V, Q_tild
 
 # --------------------------- BASIC VALUE ITERATION (NON OPTIMIZED) ------------------------------------
 
